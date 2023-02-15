@@ -1,5 +1,5 @@
-//小白数据库
-//表信息
+// 小白数据库
+// 表信息
 package xbdb
 
 import (
@@ -12,13 +12,13 @@ import (
 
 var xb *leveldb.DB
 
-//创建或打开数据库
+// 创建或打开数据库
 func OpenDb(fp string) error {
 	xb, err = leveldb.OpenFile(fp+"db", nil)
 	return err
 }
 
-//创建所有表的操作结构
+// 创建所有表的操作结构
 func OpenTableStructs() map[string]*Table {
 	Tables := make(map[string]*Table)
 	tbnames := GetTbnames()
@@ -41,7 +41,7 @@ func OpenTableStructs() map[string]*Table {
 
 }
 
-//获取数据库所有的表名称
+// 获取数据库所有的表名称
 func GetTbnames() (r []string) {
 	iter := xb.NewIterator(util.BytesPrefix([]byte(Tbspfx+Split)), nil)
 	tbname := ""
@@ -54,4 +54,8 @@ func GetTbnames() (r []string) {
 		fmt.Printf("iter.Error(): %v\n", iter.Error())
 	}
 	return r
+}
+
+func OpenDbXXXX() {
+	fmt.Println("dddddddd")
 }
