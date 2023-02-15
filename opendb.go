@@ -20,16 +20,38 @@ func OpenDb(fp string) error {
 
 //创建所有表的操作结构
 func OpenTableStructs() map[string]*Table {
-	iter := xb.NewIterator(util.BytesPrefix([]byte(Tbspfx+Split)), nil)
 	Tables := make(map[string]*Table)
+	tbnames := GetTbnames()
+	for _, v := range tbnames {
+		Tables[v] = NewTable(v)
+	}
+	return Tables
+	/*
+		iter := xb.NewIterator(util.BytesPrefix([]byte(Tbspfx+Split)), nil)
+		Tables := make(map[string]*Table)
+		tbname := ""
+		for iter.Next() {
+			tbname = strings.Split(string(iter.Key()), Split)[1]
+			Tables[tbname] = NewTable(tbname)
+		}
+		iter.Release()
+		if iter.Error() != nil {
+			fmt.Printf("iter.Error(): %v\n", iter.Error())
+		}*/
+
+}
+
+//获取数据库所有的表名称
+func GetTbnames() (r []string) {
+	iter := xb.NewIterator(util.BytesPrefix([]byte(Tbspfx+Split)), nil)
 	tbname := ""
 	for iter.Next() {
 		tbname = strings.Split(string(iter.Key()), Split)[1]
-		Tables[tbname] = NewTable(tbname)
+		r = append(r, tbname)
 	}
 	iter.Release()
 	if iter.Error() != nil {
 		fmt.Printf("iter.Error(): %v\n", iter.Error())
 	}
-	return Tables
+	return r
 }

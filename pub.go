@@ -90,3 +90,45 @@ func ByteToFloat32(bytes []byte) float32 {
 	bits := binary.LittleEndian.Uint32(bytes)
 	return math.Float32frombits(bits)
 }
+
+//判断数组元素是否存在
+func arryexist(a []string, v string) (r bool) {
+	for _, av := range a {
+		if v == av {
+			r = true
+			return
+		}
+	}
+	return
+}
+
+//将包括分隔符的数据转义
+func SplitToCh(k []byte) (r []byte) {
+	r = bytes.Replace(k, []byte(Split), []byte(ChSplit), -1)
+	r = bytes.Replace(r, []byte(IdxSplit), []byte(ChIdxSplit), -1)
+	return
+}
+
+//将记录分解并将转义数据恢复
+//由于int，float转byte，会占用所有的特殊字符
+//添加时的“转义”只是标识，SplitRd根据标识转换，才能得到正确的结果。
+//所有数据都要经过此函数，方能得到未转义前的正确数据。
+func SplitRd(Rd []byte) (r [][]byte) {
+	csp := "[fgf0]"
+	csp1 := "[fgf1]"
+	rds := bytes.Replace(Rd, []byte(ChSplit), []byte(csp), -1)
+	rds = bytes.Replace(rds, []byte(ChIdxSplit), []byte(csp1), -1)
+	r = bytes.Split(rds, []byte(Split))
+	for i, v := range r {
+		r[i] = bytes.Replace(v, []byte(csp), []byte(Split), -1)
+		r[i] = bytes.Replace(r[i], []byte(csp1), []byte(IdxSplit), -1)
+	}
+	return
+}
+
+//将包括分隔符的转义数据恢复
+func ChToSplit(k []byte) (r []byte) {
+	r = bytes.Replace(k, []byte(ChSplit), []byte(Split), -1)
+	r = bytes.Replace(r, []byte(ChIdxSplit), []byte(IdxSplit), -1)
+	return
+}

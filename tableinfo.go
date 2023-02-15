@@ -3,7 +3,6 @@
 package xbdb
 
 import (
-	"bytes"
 	"strconv"
 	"strings"
 	"time"
@@ -75,6 +74,7 @@ func (t *TableInfo) GetInfo(name string) (tbif TableInfo) {
 
 	tbpfx := TbInfopfx + Split + name //表信息前缀
 	tf := TableInfo{}
+	tf.db = xb
 	tf.Name = name //t.Name
 	var data []byte
 	var err error
@@ -254,7 +254,7 @@ func (t *TableInfo) GetIfoForFields(Ifo TableInfo, fields []string) (ifo TableIn
 	return
 }
 
-//根据获取字段对应的下标
+//根据字段（多个）获取对应的下标。
 func (t *TableInfo) GetFieldIds(fields []string) (r []int) {
 	for _, v := range fields {
 		i := t.GetFieldIdx(v)
@@ -275,13 +275,13 @@ func (t *TableInfo) GetFieldTypes(idxfield string) (string, int) {
 	return "", -1
 }
 
-//将字段名称数据转换为对应的[]byte数据数组
+//将某字段数据转换为对应的[]byte数据数组
 func (t *TableInfo) FieldChByte(field, value string) (r []byte) {
 	filedtype := t.GetFieldType(field)
 	return t.TypeChByte(filedtype, value)
 }
 
-//将表字段[]byte数据数组转换为字符串数组
+//将表所有字段[]byte数据数组转换为字符串数组
 func (t *TableInfo) ValsChString(vals [][]byte) (r []string) {
 	cs := ""
 	for i, v := range vals {
@@ -291,33 +291,28 @@ func (t *TableInfo) ValsChString(vals [][]byte) (r []string) {
 	return
 }
 
-//将包括分隔符的数据转义
-func SplitToCh(k []byte) (r []byte) {
-	r = bytes.Replace(k, []byte(Split), []byte(ChSplit), -1)
-	r = bytes.Replace(r, []byte(IdxSplit), []byte(ChIdxSplit), -1)
-	return
-}
-
-//将记录分解并将转义数据恢复
-//由于int，float转byte，会占用所有的特殊字符
-//添加时的“转义”只是标识，SplitRd根据标识转换，才能得到正确的结果。
-//所有数据都要经过此函数，方能得到未转义前的正确数据。
-func SplitRd(Rd []byte) (r [][]byte) {
-	csp := "[fgf0]"
-	csp1 := "[fgf1]"
-	rds := bytes.Replace(Rd, []byte(ChSplit), []byte(csp), -1)
-	rds = bytes.Replace(rds, []byte(ChIdxSplit), []byte(csp1), -1)
-	r = bytes.Split(rds, []byte(Split))
-	for i, v := range r {
-		r[i] = bytes.Replace(v, []byte(csp), []byte(Split), -1)
-		r[i] = bytes.Replace(r[i], []byte(csp1), []byte(IdxSplit), -1)
+//TableInfo添加一个或多个字段
+func (t *TableInfo) Add(finfo map[string]string) (r TableInfo) {
+	r = t.GetInfo(t.Name)
+	for k, v := range finfo {
+		r.Fields = append(r.Fields, k)
+		r.FieldType = append(r.FieldType, v)
 	}
 	return
 }
 
-//将包括分隔符的转义数据恢复
-func ChToSplit(k []byte) (r []byte) {
-	r = bytes.Replace(k, []byte(ChSplit), []byte(Split), -1)
-	r = bytes.Replace(r, []byte(ChIdxSplit), []byte(IdxSplit), -1)
+//TableInfo删除一个或多个字段
+func (t *TableInfo) Dec(fields []string) (r TableInfo) {
+	r = t.GetInfo(t.Name)
+	var Fields, FieldType []string
+	for i, v := range r.Fields {
+		if arryexist(fields, v) {
+			continue
+		}
+		Fields = append(Fields, v)
+		FieldType = append(FieldType, r.FieldType[i])
+	}
+	r.Fields = Fields
+	r.FieldType = FieldType
 	return
 }
