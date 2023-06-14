@@ -1,5 +1,5 @@
-//小白数据库
-//表信息
+// 小白数据库
+// 表信息
 package xbdb
 
 //修改整条记录。等于先删除后添加。
@@ -23,6 +23,7 @@ func (t *Table) Upd(params map[string]string) (r ReInfo) {
 			updatefield = append(updatefield, true)
 		}
 	}
+	updatefield[0] = false //第一个是主键，是不需要更改的。只是主键参数一定要传。
 	key := JoinBytes(t.Select.GetTbKey(), uvals[0])
 	data, err := t.db.Get(key, nil) //获取旧数据
 	if err != nil {
@@ -31,8 +32,12 @@ func (t *Table) Upd(params map[string]string) (r ReInfo) {
 	}
 	//组织数据
 	var dvals [][]byte
-	dvals = append(dvals, uvals[0])
-	dvals = append(dvals, SplitRd(data)...)
+	dvals = append(dvals, uvals[0])         //主键id
+	dvals = append(dvals, SplitRd(data)...) //其他字段数据
+	/*
+		for i, v := range dvals {               //数据转义StrToByte已经转义
+			dvals[i] = v //SplitToCh(v)
+		}*/
 	r = t.Acts(dvals, "delete", updatefield) //删除旧数据
 	if !r.Succ {
 		return
@@ -40,7 +45,7 @@ func (t *Table) Upd(params map[string]string) (r ReInfo) {
 	//更新数据
 	for i, v := range uvals {
 		if len(v) != 0 { //即是要修改的字段
-			dvals[i] = v //更改要更新的字段值
+			dvals[i] = v //SplitToCh(v) //更改要更新的字段值
 		}
 	}
 	r = t.Acts(dvals, "insert", updatefield) //添加新数据

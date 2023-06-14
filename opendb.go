@@ -23,7 +23,7 @@ func OpenTableStructs() map[string]*Table {
 	Tables := make(map[string]*Table)
 	tbnames := GetTbnames()
 	for _, v := range tbnames {
-		Tables[v] = NewTable(v)
+		Tables[v] = NewTable(xb, v)
 	}
 	return Tables
 	/*
@@ -54,8 +54,4 @@ func GetTbnames() (r []string) {
 		fmt.Printf("iter.Error(): %v\n", iter.Error())
 	}
 	return r
-}
-
-func OpenDbXXXX() {
-	fmt.Println("dddddddd")
 }
