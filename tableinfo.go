@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	Split      = "-"     //字段分隔符
-	ChSplit    = "- "    //字段分隔符的转义码，原Split+空格。空格不会导致转换后排序不正确
-	IdxSplit   = "."     //索引分隔符，转义码 原IdxSplit+空格。空格不会导致转换后排序不正确
-	ChIdxSplit = ". "    //索引分隔符的转义码
+	Split      = "_"     //字段分隔符
+	ChSplit    = "_ "    //字段分隔符的转义码，原Split+空格。空格不会导致转换后排序不正确
+	IdxSplit   = "~"     //索引分隔符，转义码 原IdxSplit+空格。空格不会导致转换后排序不正确
+	ChIdxSplit = "~ "    //索引分隔符的转义码
 	TbInfopfx  = "tbifo" //表信息的前缀
 	Tbspfx     = "table" //表列表的前缀
 )
@@ -32,6 +32,7 @@ type TableInfo struct {
 	FullText  []string //考据级全文搜索索引字段的下标。
 	Patterns  []string //全文索引解析模型。
 	FTLen     string   //全文搜索的长度，中文默认是7
+	Diychar   string
 }
 
 func NewTableInfo(db *leveldb.DB, name string) *TableInfo {
@@ -58,6 +59,8 @@ func NewTableInfo(db *leveldb.DB, name string) *TableInfo {
 	Patterns := strings.Split(string(data), Split)        //打开全文索引解析模式
 	data, _ = db.Get([]byte(tbpfx+IdxSplit+"ftlen"), nil) //全文索引长度信息
 	FTLen := string(data)
+	data, _ = db.Get([]byte(tbpfx+IdxSplit+"diy"), nil) //全文索引长度信息
+	Diychar := string(data)
 
 	return &TableInfo{
 		db:        db,
@@ -69,6 +72,7 @@ func NewTableInfo(db *leveldb.DB, name string) *TableInfo {
 		FullText:  FullText,
 		Patterns:  Patterns,
 		FTLen:     FTLen,
+		Diychar:   Diychar,
 	}
 }
 
@@ -79,7 +83,7 @@ func NewTableInfoNil(db *leveldb.DB) *TableInfo {
 }
 
 // 创建/修改一个表，默认第一个字段必须是主键
-func (t *TableInfo) Create(name, ftlen string, fields, fieldType, idxs, fullText, patterns []string) (r ReInfo) {
+func (t *TableInfo) Create(name, ftlen, diychar string, fields, fieldType, idxs, fullText, patterns []string) (r ReInfo) {
 	if len(fieldType) != len(fields) {
 		r.Info = "字段和类型数据不匹配！"
 		return
@@ -95,6 +99,7 @@ func (t *TableInfo) Create(name, ftlen string, fields, fieldType, idxs, fullText
 	r.Succ = r.Succ && t.db.Put([]byte(tbpfx+IdxSplit+"ft"), []byte(strings.Join(fullText, Split)), nil) == nil  //添加索引信息
 	r.Succ = r.Succ && t.db.Put([]byte(tbpfx+IdxSplit+"pt"), []byte(strings.Join(patterns, Split)), nil) == nil  //全文索引解析模型
 	r.Succ = r.Succ && t.db.Put([]byte(tbpfx+IdxSplit+"ftlen"), []byte(ftlen), nil) == nil
+	r.Succ = r.Succ && t.db.Put([]byte(tbpfx+IdxSplit+"diy"), []byte(diychar), nil) == nil
 
 	r.Succ = r.Succ && t.db.Put([]byte(Tbspfx+Split+name), []byte{}, nil) == nil //添加表列表
 
@@ -133,6 +138,8 @@ func (t *TableInfo) GetInfo(name string) (tbif *TableInfo) {
 	tf.Patterns = strings.Split(string(data), Split)
 	data, _ = t.db.Get([]byte(tbpfx+IdxSplit+"ftlen"), nil) //全文索引长度信息
 	tf.FTLen = string(data)
+	data, _ = t.db.Get([]byte(tbpfx+IdxSplit+"diy"), nil) //全文索引长度信息
+	tf.Diychar = string(data)
 
 	tbif = tf
 	return

@@ -7,6 +7,17 @@ import (
 
 const noPattern = " "
 
+// 检测字符是否符合
+type checkchar struct {
+	diychar string
+}
+
+func Newcheckchar(diychar string) *checkchar {
+	return &checkchar{
+		diychar: diychar,
+	}
+}
+
 //解析搜索词的匹配模型
 /*
 判断是否为中文：unicode.Is(unicode.Han, v) //unicode.Is(unicode.Scripts["Han"], v)  =1
@@ -22,7 +33,7 @@ const noPattern = " "
 判断是否为十进制数字： unicode.IsDigir(v)
 */
 //搜索词的匹配模型可以组合匹配。（patterns 可以是以上1--4的1个或多个组合。比如，中文和字母=[]int{1，2}）
-func Analysis(kw string, patterns []int) []string {
+func (c *checkchar) Analysis(kw string, patterns []int) []string {
 	rkw, k := "", ""
 	for _, v := range kw {
 		for _, pt := range patterns {
@@ -30,7 +41,7 @@ func Analysis(kw string, patterns []int) []string {
 				rkw += string(v)
 				break
 			}
-			k = IsRet(v, pt)
+			k = c.IsRet(v, pt)
 			if k != noPattern {
 				rkw += k
 				break
@@ -42,7 +53,7 @@ func Analysis(kw string, patterns []int) []string {
 }
 
 // 是中文或字母等等即原样返回，否则返回空格
-func IsRet(c rune, pattern int) string {
+func (cc *checkchar) IsRet(c rune, pattern int) string {
 	if pattern == 1 {
 		if unicode.Is(unicode.Han, c) { //返回中文
 			return string(c)
@@ -64,7 +75,7 @@ func IsRet(c rune, pattern int) string {
 		}
 	}
 	if pattern == 5 {
-		if isletter(c) { //返回自定义
+		if cc.isletter(c) { //返回自定义
 			return string(c)
 		}
 	}
@@ -72,8 +83,8 @@ func IsRet(c rune, pattern int) string {
 }
 
 // 自定义字符
-func isletter(r rune) bool {
-	lt := "《》" //自定义字符
+func (c *checkchar) isletter(r rune) bool {
+	lt := c.diychar // "《》" //自定义字符
 	for _, v := range lt {
 		if v == r {
 			return true

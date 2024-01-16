@@ -1,6 +1,6 @@
-module github.com/liaoran123/xbdb
+module xbdb
 
-go 1.17
+go 1.20
 
 require github.com/syndtr/goleveldb v1.0.0
 

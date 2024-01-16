@@ -88,7 +88,8 @@ func (d *Dbback) PutDataR(k, v []byte) bool {
 		result = append(result, text[length-i-1])
 	}
 	rdmap[fname] = string(result)
-	kws := Analysis(rdmap[fname], []int{1})
+	cc := Newcheckchar("")
+	kws := cc.Analysis(rdmap[fname], []int{1})
 	var nk []byte
 	for _, v := range kws {
 		if v == "" {

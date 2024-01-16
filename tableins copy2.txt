@@ -4,7 +4,6 @@ package xbdb
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 )
 
@@ -31,28 +30,6 @@ func (t *Table) Insert(vals [][]byte) (r ReInfo) {
 
 // 添加一条数据以及相关索引等所有数据，默认数据与字段一一对应。
 func (t *Table) Ins(params map[string]string) (r ReInfo) {
-	if params["id"] == "" { //需要自动增值
-		if t.Ac == nil {
-			t.newAutoinc()
-		}
-		if t.Ifo.FieldType[0] == "int" { //整型自动增长
-			params["id"] = t.Ac.GetidStr()
-		} else {
-			params["id"] = fmt.Sprintf("%011d", t.Ac.Getid()) //非整型则转换为11位字符串
-		}
-
-	}
-	vals := t.StrToByte(params)
-	r = t.Act(vals, "insert")
-	if r.Succ {
-		r.LastId = params["id"]
-	}
-	params["id"] = "" //不知道什么原因，如果不传值，这个值会保留上次的值，故而要清空。
-	return
-}
-
-/*
-func (t *Table) Ins(params map[string]string) (r ReInfo) {
 	if t.Ac == nil {
 		t.newAutoinc()
 	}
@@ -70,7 +47,7 @@ func (t *Table) Ins(params map[string]string) (r ReInfo) {
 	}
 	return
 }
-*/
+
 // 添加一个kv
 func (t *Table) put(k, v []byte) (r ReInfo) {
 	mu.Lock()

@@ -1,1 +1,1 @@
-go mod init github.com/liaoran123/xbdb
+go mod init 
